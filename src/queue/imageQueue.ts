@@ -42,7 +42,7 @@ export const initQueueEventListeners = () => {
     if (!dbJob) return
 
     const generateImage = await prisma.generatedImage.findUnique({
-      where: { jobId: dbJob.id },
+      where: { id: dbJob.id },
     })
 
     const io = getIO()
@@ -78,6 +78,7 @@ export const initQueueEventListeners = () => {
 
 /**
  * Helper: Fetch jobData → DB job record safely.
+ * Using GeneratedImage model instead of the non-existent Job model.
  */
 async function getJobAndData(queueJobId: string) {
   try {
@@ -93,13 +94,23 @@ async function getJobAndData(queueJobId: string) {
       return null
     }
 
-    const dbJob = await prisma.job.findUnique({ where: { id: realJobId } })
-    if (!dbJob || !dbJob.userId) {
-      console.warn(`⚠️ No DB job found for jobId: ${realJobId}`)
+    // Use GeneratedImage model instead of Job model
+    const dbImage = await prisma.generatedImage.findUnique({ where: { id: realJobId } })
+    if (!dbImage || !dbImage.userId) {
+      console.warn(`⚠️ No DB image found for jobId: ${realJobId}`)
       return null
     }
-
-    return dbJob
+    
+    // Map to the expected job structure to maintain compatibility
+    return {
+      id: dbImage.id,
+      userId: dbImage.userId,
+      status: dbImage.is_published ? "COMPLETED" : "PROCESSING",
+      progress: 100, // Default to 100 for completed images
+      imageUrl: dbImage.img_result,
+      error: null,
+      // Add any other fields that might be used in the queue system
+    }
   } catch (err) {
     console.error(`❌ Error fetching job record for queue ID: ${queueJobId}`, err)
     return null

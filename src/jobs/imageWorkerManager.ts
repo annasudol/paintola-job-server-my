@@ -5,6 +5,29 @@ import { generateImageFromPrompt } from "../services/ideogram.service"
 import { uploadImageFromUrl } from "../services/uploadToCloudinary"
 import { generateRemixFromPrompt } from "../services/ideogramRemix.service"
 import { getApiErrorMessage } from "../utils/formatAxiosError"
+
+// Helper functions to map values to enum types
+function mapModelToEnum(value: string): any {
+  const modelMap: Record<string, string> = {
+    "v1": "V_1",
+    "v2": "V_2",
+    "v2a": "V_2A"
+  }
+  return modelMap[value?.toLowerCase()] || null
+}
+
+function mapStyleTypeToEnum(value: string): any {
+  const styleMap: Record<string, string> = {
+    "auto": "AUTO",
+    "general": "GENERAL",
+    "realistic": "REALISTIC",
+    "design": "DESIGN",
+    "render_3d": "RENDER_3D",
+    "3d": "RENDER_3D",
+    "anime": "ANIME"
+  }
+  return styleMap[value?.toLowerCase()] || null
+}
 import { imageQueue } from "../queue/imageQueue"
 
 let imageWorker: Worker | null = null
@@ -43,11 +66,35 @@ export async function startImageWorker() {
       try {
         console.log("👷 [Worker] Processing Job:", jobId)
 
-        // Update DB: Job started processing
-        await prisma.job.update({
-          where: { id: jobId },
-          data: { status: "PROCESSING", progress: 10 },
-        })
+        // Since Job model doesn't exist, we'll create or update the GeneratedImage record instead
+        const existingImage = await prisma.generatedImage.findUnique({ where: { id: jobId } })
+        
+        if (existingImage) {
+          // Update existing image record
+          await prisma.generatedImage.update({
+            where: { id: jobId },
+            data: { 
+              is_published: false,
+              updatedAt: new Date()
+            },
+          })
+        } else {
+          // Create a placeholder image record if it doesn't exist yet
+          await prisma.generatedImage.create({
+            data: {
+              id: jobId,
+              userId,
+              prompt,
+              img_result: "", // Temporary empty result until image is generated
+              seed: seed || Math.floor(Math.random() * 2147483647),
+              aspect_ratio: aspect_ratio || "ASPECT_1_1",
+              negative_prompt: negative_prompt || null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              is_published: false
+            },
+          })
+        }
 
         // Generate image (remix or new)
         const data = isRemix
@@ -76,48 +123,22 @@ export async function startImageWorker() {
         // Upload to Cloudinary
         const cdnUrl = await uploadImageFromUrl(data.url, userId)
 
-        // Fetch original job for extra metadata (if needed)
-        const originalJob = await prisma.job.findUnique({ where: { id: jobId } })
-
-        // Update DB: Job completed
-        await prisma.job.update({
+        // Since Job model doesn't exist, we directly update the GeneratedImage record
+        await prisma.generatedImage.update({
           where: { id: jobId },
           data: {
-            status: "COMPLETED",
-            progress: 100,
-            imageUrl: cdnUrl,
-            metadata: {
-              original_url: data.url,
-              model,
-              style_type,
-              aspect_ratio,
-              magic_prompt_option,
-              negative_prompt,
-            },
-          },
-        })
-
-        // Create GeneratedImage record
-        await prisma.generatedImage.create({
-          data: {
-            userId,
-            jobId,
-            prompt,
-            model: model ?? undefined,
-            style_type: style_type ?? undefined,
-            aspect_ratio,
-            color_palette: color_palette ? JSON.parse(JSON.stringify(color_palette)) : undefined,
-            negative_prompt: negative_prompt ?? undefined,
-            image_weight: image_weight ?? undefined,
-            image_description: originalJob?.image_description || "",
-            image_input_url: image_input_url ?? undefined,
-            seed: data.seed,
-            prompt_enhanced: magic_prompt_option?.toLowerCase() === "on" ? data.prompt : "",
             img_result: cdnUrl,
-            style_builder: originalJob?.style_builder,
-            style_builder_value: originalJob?.style_builder_value,
-            is_published: false,
-            createdAt: new Date(),
+            prompt,
+            model: model ? mapModelToEnum(model) : null,
+            style_type: style_type ? mapStyleTypeToEnum(style_type) : null,
+            aspect_ratio: aspect_ratio || "ASPECT_1_1",
+            color_palette: color_palette ? JSON.parse(JSON.stringify(color_palette)) : null,
+            negative_prompt: negative_prompt || null,
+            image_weight: image_weight || null,
+            image_input_url: image_input_url || null,
+            seed: data.seed,
+            prompt_enhanced: magic_prompt_option?.toLowerCase() === "on" ? data.prompt : null,
+            is_published: true, // Mark as completed/published
             updatedAt: new Date(),
           },
         })
@@ -127,11 +148,23 @@ export async function startImageWorker() {
       } catch (error: any) {
         const friendlyMessage = getApiErrorMessage(error)
 
-        // Update DB: Mark job as failed
-        await prisma.job.update({
-          where: { id: jobId },
-          data: { status: "FAILED", progress: 0, error: friendlyMessage },
-        })
+        // Since Job model doesn't exist, we update the GeneratedImage record to indicate failure
+        try {
+          const existingImage = await prisma.generatedImage.findUnique({ where: { id: jobId } })
+          
+          if (existingImage) {
+            await prisma.generatedImage.update({
+              where: { id: jobId },
+              data: { 
+                is_published: false,
+                img_result: "", // Empty since generation failed
+                updatedAt: new Date()
+              },
+            })
+          }
+        } catch (updateError) {
+          console.error("Failed to update image record for failed job:", updateError)
+        }
 
         console.error(`❌ [Worker] Job ${jobId} failed:`, friendlyMessage)
         return { error: friendlyMessage }

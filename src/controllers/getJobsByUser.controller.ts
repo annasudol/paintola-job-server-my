@@ -2,7 +2,8 @@ import { Request, Response } from "express"
 import { prisma } from "../db/client"
 
 /**
- * Retrieves all jobs for a given user.
+ * Retrieves all image generation jobs for a given user.
+ * Using GeneratedImage model since Job model doesn't exist in the database schema.
  */
 export const getJobsByUser = async (req: Request, res: Response) => {
   try {
@@ -12,12 +13,12 @@ export const getJobsByUser = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "userId is required" })
     }
 
-    const jobs = await prisma.job.findMany({
+    const images = await prisma.generatedImage.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
     })
 
-    return res.status(200).json({ jobs })
+    return res.status(200).json({ jobs: images })
   } catch (err) {
     console.error("❌ Error fetching jobs:", err)
     return res.status(500).json({ error: "Internal server error" })
@@ -25,7 +26,8 @@ export const getJobsByUser = async (req: Request, res: Response) => {
 }
 
 /**
- * Deletes a job if it belongs to the requesting user.
+ * Deletes an image job if it belongs to the requesting user.
+ * Using GeneratedImage model since Job model doesn't exist in the database schema.
  */
 export const deleteJobById = async (req: Request, res: Response) => {
   const { jobId } = req.params
@@ -36,17 +38,17 @@ export const deleteJobById = async (req: Request, res: Response) => {
   }
 
   try {
-    const job = await prisma.job.findUnique({ where: { id: jobId } })
+    const image = await prisma.generatedImage.findUnique({ where: { id: jobId } })
 
-    if (!job) {
+    if (!image) {
       return res.status(404).json({ error: "Job not found" })
     }
 
-    if (job.userId !== userId) {
+    if (image.userId !== userId) {
       return res.status(403).json({ error: "You do not have permission to delete this job." })
     }
 
-    await prisma.job.delete({ where: { id: jobId } })
+    await prisma.generatedImage.delete({ where: { id: jobId } })
 
     return res.status(200).json({ message: "Job deleted successfully." })
   } catch (error) {
