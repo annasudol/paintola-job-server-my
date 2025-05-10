@@ -1,7 +1,7 @@
 {
   "name": "paintola-job-server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn src/index.ts",
     "worker": "ts-node src/jobs/imageGenerationWorker.ts",
