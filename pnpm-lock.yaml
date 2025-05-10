@@ -11,6 +11,9 @@ importers:
       '@prisma/client':
         specifier: ^6.6.0
         version: 6.7.0(prisma@6.7.0(typescript@5.8.3))(typescript@5.8.3)
+      '@types/form-data':
+        specifier: ^2.2.1
+        version: 2.5.2
       axios:
         specifier: ^1.8.4
         version: 1.9.0
@@ -29,6 +32,9 @@ importers:
       express:
         specifier: ^5.1.0
         version: 5.1.0
+      form-data:
+        specifier: ^4.0.2
+        version: 4.0.2
       ioredis:
         specifier: ^5.6.1
         version: 5.6.1
@@ -354,6 +360,10 @@ packages:
 
   '@types/express@5.0.1':
     resolution: {integrity: sha512-UZUw8vjpWFXuDnjFTh7/5c2TWDlQqeXHi6hcN7F2XSVT5P+WmUnnbFS3KA6Jnc6IsEqI2qCVu2bK0R0J4A8ZQQ==}
+
+  '@types/form-data@2.5.2':
+    resolution: {integrity: sha512-tfmcyHn1Pp9YHAO5r40+UuZUPAZbUEgqTel3EuEKpmF9hPkXgR4l41853raliXnb4gwyPNoQOfvgGGlHN5WSog==}
+    deprecated: This is a stub types definition. form-data provides its own type definitions, so you do not need this installed.
 
   '@types/http-errors@2.0.4':
     resolution: {integrity: sha512-D0CFMMtydbJAegzOyHjtiKPLlvnm3iTZyZRSZoLq2mRhDdmLfIWOCYPfQJ4cu2erKghU++QvjcUjp/5h7hESpA==}
@@ -1342,6 +1352,10 @@ snapshots:
       '@types/body-parser': 1.19.5
       '@types/express-serve-static-core': 5.0.6
       '@types/serve-static': 1.15.7
+
+  '@types/form-data@2.5.2':
+    dependencies:
+      form-data: 4.0.2
 
   '@types/http-errors@2.0.4': {}
 
