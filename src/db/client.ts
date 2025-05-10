@@ -1,19 +1,30 @@
-// Import Prisma client with ES module syntax to work consistently in all environments
-import { PrismaClient } from "@prisma/client"
-
 /**
- * Prisma client instance for database operations.
- * Automatically handles connection pooling.
+ * Prisma client using CommonJS require to work with Prisma 6
+ * This pattern works reliably for both local and deployed environments
  */
-// Add logging in production to help diagnose issues
-const prismaClientSingleton = () => {
-  return new PrismaClient({
-    log: process.env.NODE_ENV === 'production' ? ['error', 'warn'] : ['query', 'error', 'warn'],
-  })
+
+// Ensure NODE_ENV is defined for conditional logic
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+
+// Use require for Prisma 6 compatibility
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { default: PrismaClient } = require('@prisma/client');
+
+// Initialize a global instance of Prisma client
+declare global {
+  // eslint-disable-next-line no-var
+  var cachedPrisma: any | undefined;
 }
 
-// Use global object to store Prisma instance to prevent multiple instances in development
-const globalForPrisma = global as unknown as { prisma: PrismaClient }
-export const prisma = globalForPrisma.prisma ?? prismaClientSingleton()
+// Create Prisma client with appropriate logging
+const createPrismaClient = () => {
+  return new PrismaClient({
+    log: process.env.NODE_ENV === 'production' ? ['error', 'warn'] : ['query', 'error', 'warn'],
+  });
+};
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Export a singleton instance of Prisma client
+export const prisma = global.cachedPrisma || createPrismaClient();
+
+// Cache the client to prevent connection issues in development
+if (process.env.NODE_ENV !== 'production') global.cachedPrisma = prisma;
