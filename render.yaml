@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: paintola-job-server
+    env: node
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+    # This ensures render.com knows what port your service is running on
+    plan: starter
+    autoDeploy: false
