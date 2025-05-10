@@ -2,13 +2,15 @@ services:
   - type: web
     name: paintola-job-server
     env: node
-    buildCommand: npm ci && npm run build
+    buildCommand: npm ci && npx prisma generate && npm run build
     startCommand: npm start
     envVars:
       - key: PORT
         value: 10000
       - key: NODE_ENV
         value: production
+      - key: DATABASE_URL
+        sync: false # This ensures the DATABASE_URL from your Render dashboard is used
     # This ensures render.com knows what port your service is running on
     plan: starter
     autoDeploy: false
