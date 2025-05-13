@@ -22,7 +22,6 @@ export const handleRemixImage = async (req: Request, res: Response) => {
       image_description,
       image_weight,
       style_builder,
-      style_builder_value,
       image_input_url,
     } = req.body
 
@@ -72,7 +71,6 @@ export const handleRemixImage = async (req: Request, res: Response) => {
       image_input_url: image_url,
       image_weight: image_weight ? parseInt(image_weight) : 50,
       style_builder,
-      style_builder_value,
     })
 
     // Queue the job

@@ -8,7 +8,6 @@ const router = Router()
 
 router.use("/generate-image", generateImageRoute)
 router.use("/remix-image", remixRoutes)
-// router.use("/job-status", jobStatusRoute)
 router.use("/jobs", jobsRoute)
 
 export default router

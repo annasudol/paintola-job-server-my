@@ -19,6 +19,7 @@ export const handleGenerateImage = async (req: Request, res: Response) => {
       seed,
       color_palette,
       is_published,
+      style_builder
     } = req.body
 
     if (!prompt || !userId) {
@@ -49,7 +50,8 @@ export const handleGenerateImage = async (req: Request, res: Response) => {
       negative_prompt,
       seed: seed ? parseInt(seed) : 0,
       color_palette: parsed_color_palette,
-      is_published: is_published === "true" || is_published === true,
+      is_published: false,
+      style_builder
     })
 
     // Queue the job

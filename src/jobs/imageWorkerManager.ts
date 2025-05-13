@@ -138,7 +138,8 @@ export async function startImageWorker() {
             image_input_url: image_input_url || null,
             seed: data.seed,
             prompt_enhanced: magic_prompt_option?.toLowerCase() === "on" ? data.prompt : null,
-            is_published: true, // Mark as completed/published
+            is_published: false,
+            createdAt: new Date(),
             updatedAt: new Date(),
           },
         })

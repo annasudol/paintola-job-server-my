@@ -15,7 +15,6 @@ export interface SharedJobInput {
   image_input_url?: string
   image_weight?: number
   style_builder?: string
-  style_builder_value?: string
   is_published?: boolean
 }
 
@@ -41,7 +40,6 @@ export const createJobRecord = async (input: SharedJobInput): Promise<string> =>
     image_input_url,
     image_weight,
     style_builder,
-    style_builder_value,
     isRemix = false,
   } = input
 
@@ -54,7 +52,7 @@ export const createJobRecord = async (input: SharedJobInput): Promise<string> =>
       negative_prompt: negative_prompt || null,
       img_result: "", // This will be populated later when the image is generated
       aspect_ratio: aspectRatioToEnum(aspect_ratio) || "ASPECT_1_1", // Default to square if not provided
-      is_published: !!is_published,
+      is_published: false,
       model: model ? mapModelToEnum(model) : null,
       style_type: style_type ? mapStyleTypeToEnum(style_type) : null,
       color_palette: color_palette || null,
