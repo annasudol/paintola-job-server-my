@@ -21,7 +21,6 @@ model User {
   currency      String           @default("eur")
   tokens        Int              @default(10)
   wooCommerceID String?
-  stripeID      String?
   account       Account[]
   favorites     Favorite[]
   images        GeneratedImage[]
@@ -100,26 +99,27 @@ model VerificationToken {
 }
 
 model GeneratedImage {
-  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  prompt           String
-  negative_prompt  String?
-  seed             Int
-  img_result       String
-  createdAt        DateTime    @default(now()) @db.Timestamp(6)
-  updatedAt        DateTime    @updatedAt
-  userId           String      @db.Uuid
-  is_published     Boolean     @default(false)
-  model            IModel?
-  color_palette    Json?       @db.Json
-  prompt_enhanced  String?
-  image_input_url  String?
-  image_weight     Int?
-  style_builder    String?
+  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prompt            String
+  negative_prompt   String?
+  seed              Int
+  img_result        String
+  createdAt         DateTime    @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime    @updatedAt
+  userId            String      @db.Uuid
+  is_published      Boolean     @default(false)
+  model             IModel?
+  color_palette     Json?       @db.Json
+  prompt_enhanced   String?
+  image_input_url   String?
+  image_weight      Int?
+  aspect_ratio      IAspect
+  style_type        IStyleType?
+  style_builder     String?
   image_description String?
-  aspect_ratio     IAspect
-  style_type       IStyleType?
-  favoritedBy      Favorite[]
-  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mockup            String?
+  favoritedBy       Favorite[]
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum IShare {
